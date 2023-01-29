@@ -1,5 +1,6 @@
 package edu.neu.coe.info6205.util;
 
+import java.util.concurrent.TimeUnit;
 import java.util.function.Consumer;
 import java.util.function.Function;
 import java.util.function.Supplier;
@@ -15,7 +16,8 @@ public class Timer {
     }
 
     /**
-     * Run the given function n times, once per "lap" and then return the result of calling stop().
+     * Run the given function n times, once per "lap" and then return the result of
+     * calling stop().
      *
      * @param n        the number of repetitions.
      * @param function a function which yields a T (T may be Void).
@@ -33,10 +35,12 @@ public class Timer {
     }
 
     /**
-     * Run the given functions n times, once per "lap" and then return the result of calling stop().
+     * Run the given functions n times, once per "lap" and then return the result of
+     * calling stop().
      *
      * @param n        the number of repetitions.
-     * @param supplier a function which supplies a different T value for each repetition.
+     * @param supplier a function which supplies a different T value for each
+     *                 repetition.
      * @param function a function T=>U and which is to be timed (U may be Void).
      * @return the average milliseconds per repetition.
      */
@@ -45,20 +49,34 @@ public class Timer {
     }
 
     /**
-     * Pause (without counting a lap); run the given functions n times while being timed, i.e. once per "lap", and finally return the result of calling meanLapTime().
+     * Pause (without counting a lap); run the given functions n times while being
+     * timed, i.e. once per "lap", and finally return the result of calling
+     * meanLapTime().
      *
      * @param n            the number of repetitions.
      * @param supplier     a function which supplies a T value.
      * @param function     a function T=>U and which is to be timed.
-     * @param preFunction  a function which pre-processes a T value and which precedes the call of function, but which is not timed (may be null).
-     * @param postFunction a function which consumes a U and which succeeds the call of function, but which is not timed (may be null).
+     * @param preFunction  a function which pre-processes a T value and which
+     *                     precedes the call of function, but which is not timed
+     *                     (may be null).
+     * @param postFunction a function which consumes a U and which succeeds the call
+     *                     of function, but which is not timed (may be null).
      * @return the average milliseconds per repetition.
      */
-    public <T, U> double repeat(int n, Supplier<T> supplier, Function<T, U> function, UnaryOperator<T> preFunction, Consumer<U> postFunction) {
+    public <T, U> double repeat(int n, Supplier<T> supplier, Function<T, U> function, UnaryOperator<T> preFunction,
+            Consumer<U> postFunction) {
         logger.trace("repeat: with " + n + " runs");
-        // FIXME: note that the timer is running when this method is called and should still be running when it returns. by replacing the following code
-         return 0;
-        // END 
+        // FIXME: note that the timer is running when this method is called and should
+        // still be running when it returns. by replacing the following code
+        for (int i = 0; i < n; i++) {
+            function.apply(supplier.get());
+            lap();
+        }
+        pause();
+        final double result = meanLapTime();
+        resume();
+        return result;
+        // END
     }
 
     /**
@@ -79,7 +97,8 @@ public class Timer {
      * @throws TimerException if this Timer is running.
      */
     public double meanLapTime() {
-        if (running) throw new TimerException();
+        if (running)
+            throw new TimerException();
         return toMillisecs(ticks) / laps;
     }
 
@@ -101,7 +120,8 @@ public class Timer {
      * @throws TimerException if this Timer is already running.
      */
     public void resume() {
-        if (running) throw new TimerException();
+        if (running)
+            throw new TimerException();
         ticks -= getClock();
         running = true;
     }
@@ -113,7 +133,8 @@ public class Timer {
      * @throws TimerException if this Timer is not running.
      */
     public void lap() {
-        if (!running) throw new TimerException();
+        if (!running)
+            throw new TimerException();
         laps++;
     }
 
@@ -130,12 +151,14 @@ public class Timer {
 
     /**
      * Method to yield the total number of milliseconds elapsed.
-     * NOTE: an exception will be thrown if this is called while the timer is running.
+     * NOTE: an exception will be thrown if this is called while the timer is
+     * running.
      *
      * @return the total number of milliseconds elapsed for this timer.
      */
     public double millisecs() {
-        if (running) throw new TimerException();
+        if (running)
+            throw new TimerException();
         return toMillisecs(ticks);
     }
 
@@ -170,19 +193,22 @@ public class Timer {
     /**
      * Get the number of ticks from the system clock.
      * <p>
-     * NOTE: (Maintain consistency) There are two system methods for getting the clock time.
+     * NOTE: (Maintain consistency) There are two system methods for getting the
+     * clock time.
      * Ensure that this method is consistent with toMillisecs.
      *
-     * @return the number of ticks for the system clock. Currently defined as nano time.
+     * @return the number of ticks for the system clock. Currently defined as nano
+     *         time.
      */
     private static long getClock() {
         // FIXME by replacing the following code
-         return 0;
-        // END 
+        return System.nanoTime();
+        // END
     }
 
     /**
-     * NOTE: (Maintain consistency) There are two system methods for getting the clock time.
+     * NOTE: (Maintain consistency) There are two system methods for getting the
+     * clock time.
      * Ensure that this method is consistent with getTicks.
      *
      * @param ticks the number of clock ticks -- currently in nanoseconds.
@@ -190,8 +216,8 @@ public class Timer {
      */
     private static double toMillisecs(long ticks) {
         // FIXME by replacing the following code
-         return 0;
-        // END 
+        return TimeUnit.NANOSECONDS.toMillis(ticks);
+        // END
     }
 
     final static LazyLogger logger = new LazyLogger(Timer.class);
