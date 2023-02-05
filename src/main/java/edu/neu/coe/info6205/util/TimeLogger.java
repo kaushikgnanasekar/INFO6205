@@ -18,6 +18,10 @@ public class TimeLogger {
         logger.info(prefix + " " + formatTime(normalizer.apply(time, N)));
     }
 
+    public void log(Double time) {
+        logger.info(prefix + " " + time);
+    }
+
     private static String formatTime(double time) {
         decimalFormat.applyPattern(timePattern);
         return decimalFormat.format(time);
@@ -27,7 +31,6 @@ public class TimeLogger {
 
     private static final Locale locale = new Locale("en", "US");
     private static final String timePattern = "######.00";
-    private static final DecimalFormat decimalFormat = (DecimalFormat)
-            NumberFormat.getNumberInstance(locale);
+    private static final DecimalFormat decimalFormat = (DecimalFormat) NumberFormat.getNumberInstance(locale);
 
 }

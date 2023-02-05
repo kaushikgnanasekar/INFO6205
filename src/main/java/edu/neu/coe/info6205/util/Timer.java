@@ -77,14 +77,20 @@ public class Timer {
         logger.trace("repeat: with " + n + " runs");
         // FIXME: note that the timer is running when this method is called and should
         // still be running when it returns. by replacing the following code
-        for (int i = 0; i < n; i++) {
-            function.apply(supplier.get());
-            lap();
-        }
         pause();
-        final double result = meanLapTime();
-        resume();
-        return result;
+        for (int i = 0; i < n; i++) {
+            T supplierInput = supplier.get();
+            T inputFromPreFn = supplierInput;
+            U timedFunctionOutput = null;
+            if (preFunction != null)
+                inputFromPreFn = preFunction.apply(supplierInput);
+            resume();
+            timedFunctionOutput = function.apply(inputFromPreFn);
+            pauseAndLap();
+            if (postFunction != null)
+                postFunction.accept(timedFunctionOutput);
+        }
+        return meanLapTime();
         // END
     }
 
@@ -232,7 +238,9 @@ public class Timer {
      */
     private static double toMillisecs(long ticks) {
         // FIXME by replacing the following code
-        return TimeUnit.NANOSECONDS.toMillis(ticks);
+        // return TimeUnit.NANOSECONDS.toMillis(ticks);
+        // return ticks / 1000000;
+        return ticks * Math.pow(10, -6);
         // END
     }
 
