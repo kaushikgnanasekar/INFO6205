@@ -9,6 +9,8 @@ package edu.neu.coe.info6205.union_find;
 
 import java.util.Arrays;
 
+import edu.neu.coe.info6205.util.QuickRandom;
+
 /**
  * Height-weighted Quick Union with Path Compression
  */
@@ -20,7 +22,8 @@ public class UF_HWQUPC implements UF {
      * @param q the integer representing the other site
      */
     public void connect(int p, int q) {
-        if (!isConnected(p, q)) union(p, q);
+        if (!isConnected(p, q))
+            union(p, q);
     }
 
     /**
@@ -81,8 +84,12 @@ public class UF_HWQUPC implements UF {
     public int find(int p) {
         validate(p);
         int root = p;
-        // FIXME
-        // END 
+        while (root != getParent(root)) {
+            if (pathCompression) {
+                doPathCompression(root);
+            }
+            root = getParent(root);
+        }
         return root;
     }
 
@@ -91,10 +98,12 @@ public class UF_HWQUPC implements UF {
      *
      * @param p the integer representing one site
      * @param q the integer representing the other site
-     * @return {@code true} if the two sites {@code p} and {@code q} are in the same component;
-     * {@code false} otherwise
+     * @return {@code true} if the two sites {@code p} and {@code q} are in the same
+     *         component;
+     *         {@code false} otherwise
      * @throws IllegalArgumentException unless
-     *                                  both {@code 0 <= p < n} and {@code 0 <= q < n}
+     *                                  both {@code 0 <= p < n} and
+     *                                  {@code 0 <= q < n}
      */
     public boolean connected(int p, int q) {
         return find(p) == find(q);
@@ -107,7 +116,8 @@ public class UF_HWQUPC implements UF {
      * @param p the integer representing one site
      * @param q the integer representing the other site
      * @throws IllegalArgumentException unless
-     *                                  both {@code 0 <= p < n} and {@code 0 <= q < n}
+     *                                  both {@code 0 <= p < n} and
+     *                                  {@code 0 <= q < n}
      */
     public void union(int p, int q) {
         // CONSIDER can we avoid doing find again?
@@ -163,21 +173,50 @@ public class UF_HWQUPC implements UF {
         return parent[i];
     }
 
-    private final int[] parent;   // parent[i] = parent of i
-    private final int[] height;   // height[i] = height of subtree rooted at i
-    private int count;  // number of components
+    private final int[] parent; // parent[i] = parent of i
+    private final int[] height; // height[i] = height of subtree rooted at i
+    private int count; // number of components
     private boolean pathCompression;
 
     private void mergeComponents(int i, int j) {
-        // FIXME make shorter root point to taller one
-        // END 
+        if (height[i] < height[j]) {
+            parent[i] = j;
+        } else {
+            parent[j] = i;
+
+            if (height[i] == height[j]) {
+                height[i] += 1;
+            }
+        }
     }
 
     /**
      * This implements the single-pass path-halving mechanism of path compression
      */
     private void doPathCompression(int i) {
-        // FIXME update parent to value of grandparent
-        // END 
+        parent[i] = getParent(parent[i]);
     }
+
+    public static void main(String[] args) {
+        System.out.println("UF_HWQUPC Benchmark");
+        int runs = 100;
+        int n = 1000;
+        for (int i = 0; i < 15; i++) {
+            long pairs = 0;
+            for (int k = 0; k < runs; k++) {
+                UF_HWQUPC uf = new UF_HWQUPC(n, true);
+                QuickRandom quickRandom = new QuickRandom(n);
+                int m = 0;
+                while (uf.count > 1) {
+                    uf.connect(quickRandom.get(), quickRandom.get());
+                    m++;
+                }
+                pairs += m;
+            }
+            pairs = pairs / 100;
+            System.out.println("Number of objects (n)= " + n + " Number of pairs (m)= " + pairs);
+            n *= 2;
+        }
+    }
+
 }
