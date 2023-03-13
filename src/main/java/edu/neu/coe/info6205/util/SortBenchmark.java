@@ -5,8 +5,10 @@ package edu.neu.coe.info6205.util;
 
 import edu.neu.coe.info6205.sort.BaseHelper;
 import edu.neu.coe.info6205.sort.Helper;
+import edu.neu.coe.info6205.sort.InstrumentedHelper;
 import edu.neu.coe.info6205.sort.SortWithHelper;
 import edu.neu.coe.info6205.sort.elementary.BubbleSort;
+import edu.neu.coe.info6205.sort.elementary.HeapSort;
 import edu.neu.coe.info6205.sort.elementary.InsertionSort;
 import edu.neu.coe.info6205.sort.elementary.RandomSort;
 import edu.neu.coe.info6205.sort.elementary.ShellSort;
@@ -40,9 +42,9 @@ public class SortBenchmark {
         logger.info("SortBenchmark.main: " + config.get("SortBenchmark", "version") + " with word counts: " + Arrays.toString(args));
         if (args.length == 0) logger.warn("No word counts specified on the command line");
         SortBenchmark benchmark = new SortBenchmark(config);
-        benchmark.sortIntegersByShellSort(config.getInt("shellsort", "n", 100000));
+//        benchmark.sortIntegersByShellSort(config.getInt("shellsort", "n", 100000));
         benchmark.sortStrings(Arrays.stream(args).map(Integer::parseInt));
-        benchmark.sortLocalDateTimes(config.getInt("benchmarkdatesorters", "n", 100000), config);
+//        benchmark.sortLocalDateTimes(config.getInt("benchmarkdatesorters", "n", 100000), config);
     }
 
     public void sortLocalDateTimes(final int n, Config config) throws IOException {
@@ -136,17 +138,26 @@ public class SortBenchmark {
         }
 
         if (isConfigBenchmarkStringSorter("mergesort")) {
-            runMergeSortBenchmark(words, nWords, nRuns, false, false);
-            runMergeSortBenchmark(words, nWords, nRuns, true, false);
-            runMergeSortBenchmark(words, nWords, nRuns, false, true);
-            runMergeSortBenchmark(words, nWords, nRuns, true, true);
+        	 InstrumentedHelper <String> helper = new InstrumentedHelper("MergeSort", nWords, config);
+			 runStringSortBenchmark(words, nWords, nRuns, new MergeSortBasic<>(helper), timeLoggersLinearithmic);
+			 System.out.println("Compares= " + helper.getCompares() + " Swaps= " + helper.getSwaps() + " Hits= " + helper.getHits() + " Copies= " + helper.getCopies());
+        }
+        
+        if (isConfigBenchmarkStringSorter("heapsort")) {
+       	 InstrumentedHelper <String> helper = new InstrumentedHelper("HeapSort", nWords, config);
+			 runStringSortBenchmark(words, nWords, nRuns, new HeapSort<>(helper), timeLoggersLinearithmic);
+			 System.out.println("Compares= " + helper.getCompares() + " Swaps= " + helper.getSwaps() + " Hits= " + helper.getHits() + " Copies= " + helper.getCopies());
+	            
         }
 
         if (isConfigBenchmarkStringSorter("quicksort3way"))
             runStringSortBenchmark(words, nWords, nRuns, new QuickSort_3way<>(nWords, config), timeLoggersLinearithmic);
 
-        if (isConfigBenchmarkStringSorter("quicksortDualPivot"))
-            runStringSortBenchmark(words, nWords, nRuns, new QuickSort_DualPivot<>(nWords, config), timeLoggersLinearithmic);
+        if (isConfigBenchmarkStringSorter("quicksortDualPivot")) {
+        	InstrumentedHelper <String> helper = new InstrumentedHelper("QuickSortDualPivot", nWords, config);
+        	runStringSortBenchmark(words, nWords, nRuns, new QuickSort_DualPivot<>(helper), timeLoggersLinearithmic);
+        	System.out.println("Compares= " + helper.getCompares() + " Swaps= " + helper.getSwaps() + " Hits= " + helper.getHits() + " Copies= " + helper.getCopies());
+        }
 
         if (isConfigBenchmarkStringSorter("quicksort"))
             runStringSortBenchmark(words, nWords, nRuns, new QuickSort_Basic<>(nWords, config), timeLoggersLinearithmic);
@@ -231,7 +242,7 @@ public class SortBenchmark {
     }
 
     private void doLeipzigBenchmarkEnglish(int x) {
-        String resource = "eng-uk_web_2002_" + (x < 50000 ? "10K" : x < 200000 ? "100K" : "1M") + "-sentences.txt";
+        String resource = "eng-uk_web_2002_" + (x < 50000 ? "10K-sentences.txt" : x < 200000 ? "100K-sentences.txt" : "1M-words.txt");
         try {
             doLeipzigBenchmark(resource, x, Utilities.round(100000000 / minComparisons(x)));
         } catch (FileNotFoundException e) {

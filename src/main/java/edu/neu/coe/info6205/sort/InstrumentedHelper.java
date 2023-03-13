@@ -493,11 +493,11 @@ public class InstrumentedHelper<X extends Comparable<X>> extends BaseHelper<X> {
 
     // NOTE: the following private methods are only for testing (using reflection).
 
-    private int getHits() {
+    public int getHits() {
         return hits;
     }
 
-    private int getCopies() {
+    public int getCopies() {
         return copies;
     }
 
